@@ -6,11 +6,13 @@ const bot = new Telegraf(config.token);
 
 bot.start((ctx) => {
   const msg = 
-`Salve, FURIOSO/A! \n
-Bem-vindo ao bot da FURIA!
-Tudo sobre o time da FURIA de CS 🔫
+`🐾 Fala, Furioso(a)! Aqui é o bot da FURIA!
 
-📌 Selecione uma opção abaixo 📌`; 
+Quer ficar por dentro de tudo sobre a FURIA no CS? Acompanhe nosso time, jogos ao vivo, campeonatos, e as novidades do mundo do Counter-Strike! Tá tudo aqui para você não perder nenhum lance!.
+
+Vem acompanhar de perto cada vitória da FURIA no CS! 🖤🔥
+
+Fique a vontade para me pedir qualquer informação`; 
 
 return ctx.reply(msg, Markup.inlineKeyboard([
   [Markup.button.callback('👥 Elenco', 'elenco')],
