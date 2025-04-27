@@ -1,3 +1,4 @@
+const { all } = require('axios');
 const puppeteer = require('puppeteer');
 
 async function launchBrowser(url) {
@@ -63,43 +64,94 @@ await browser.close();
 }
 
 
-async function getMatches() {
-  const url = 'https://www.hltv.org/team/8297/furia';
+async function getMatches(matchTableNumber) {
+  const url = 'https://www.hltv.org/team/7020/spirit';
   const { browser, page } = await launchBrowser(url);
 
-
-  const matches = await page.evaluate(() => {
-    
-    const matchTable = document.querySelector('.table-container.match-table'); 
+  // Obtendo as partidas na página principal
+  const matches = await page.evaluate((matchTableNumber) => {
+    const matchTables = document.querySelectorAll('.table-container.match-table');
     const allPastMatches = [];
 
-  
+    // Selecionando a tabela com base no número passado
+    const matchTable = matchTableNumber === 1 ? matchTables[1] : matchTables[0];
+
     const rows = matchTable.querySelectorAll('.team-row');
 
-    rows.forEach(row =>{
+    rows.forEach(row => {
       const date = row.querySelector('.date-cell span')?.innerText.trim() || 'Data não encontrada';
       const team1 = row.querySelector('.team-name.team-1')?.innerText.trim() || 'Time 1 não encontrada';
       const team2 = row.querySelector('.team-name.team-2')?.innerText.trim() || 'Time 2 não encontrada';
       const scoreSpanAll = row.querySelectorAll('.score-cell span');
-      const score = Array.from(scoreSpanAll).slice(0,3).map(span => span.innerText.trim()).join(' ') || 'Pontuação não encontrada';
-      const linkpartida = row.querySelector('.stats-button-cell a');
-      const href = linkpartida?.href; 
-      
+      const score = Array.from(scoreSpanAll).slice(0, 3).map(span => span.innerText.trim()).join(' ') || 'Pontuação não encontrada';
+      const linkpartida = matchTableNumber === 1 ? row.querySelector('.stats-button-cell a') : row.querySelector('.matchpage-button-cell a');
+      const href = linkpartida?.href;
+
       allPastMatches.push({
-       date,team1,team2,score,href});
+        date, team1, team2, score, href
       });
+    });
 
     return allPastMatches;
-      
-    });
+  }, matchTableNumber);
 
   await browser.close();
 
+  /*
+  for (let match of matches) {
+    const nameChampionship = await getNameChampionship(match.href);
+    match.nameChampionship = nameChampionship;
+  }
+  */
+
+  console.log(matches);
   return matches;
 }
 
+/*
+async function getNameChampionship(urlmatch) {
+  const { browser, page } = await launchBrowser(urlmatch);
 
-getMatches();
+  const nameChampionship = await page.evaluate(() => {
+    // Certifique-se de que a classe está correta
+    const boxteams = document.querySelector('.standard-box.teamsBox');
+    const nameElement = boxteams.querySelector('.event.text-ellipsis');
+    return nameElement.innerText.trim();  
+  });
 
-module.exports = { getFuriaPlayers, getRanking, getMatches };
+  await browser.close();
+  return nameChampionship;
+}
+*/
+
+
+
+async function getNews() {
+
+  const url = 'https://www.hltv.org/team/8297/furia#tab-newsBox';
+  const { browser, page } = await launchBrowser(url);
+
+  const news = await page.evaluate(() => {
+    const newsTable = document.querySelectorAll('#newsBox a');
+    const allNews = [];
+
+    newsTable.forEach(news => {
+      const href = news?.href;
+      const titulo = news.innerText.trim();
+
+      if (titulo.includes('FURIA')) { // 🔥 filtra só os títulos com 'FURIA'
+        allNews.push({ href, titulo });
+      }
+    });
+
+    return allNews;
+  });
+
+  await browser.close();
+
+  return news;
+}
+
+
+module.exports = { getFuriaPlayers, getRanking, getMatches, getNews };
 

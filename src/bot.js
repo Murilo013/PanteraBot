@@ -1,10 +1,10 @@
-const { getFuriaPlayers, getRanking, getMatches } = require('./webscraping'); // Importa as funções de webscraping
+const { getFuriaPlayers, getRanking, getMatches, getNews } = require('./webscraping'); // Importa as funções de webscraping
 const config = require('./config')
 const { Telegraf,Markup } = require('telegraf');
 
 const bot = new Telegraf(config.token);
 
-bot.start((ctx) => {
+bot.start(async (ctx) => {
   const msg = 
 `🐾 Fala, Furioso(a)! Aqui é o bot da FURIA!
 
@@ -14,12 +14,8 @@ Vem acompanhar de perto cada vitória da FURIA no CS! 🖤🔥
 
 Fique a vontade para me pedir qualquer informação`; 
 
-return ctx.reply(msg, Markup.inlineKeyboard([
-  [Markup.button.callback('👥 Elenco', 'elenco')],
-  [Markup.button.callback('📊 Ranking', 'ranking')],
-  [Markup.button.callback('📅 Partidas Recentes', 'partidas')],
-]));
-
+ctx.reply(msg);
+await mostrarMenu(ctx);
 });
 
 
@@ -50,11 +46,11 @@ bot.action('ranking', async (ctx) => {
 });
 
 
-bot.action('partidas', async (ctx) => {
+bot.action('partidasrecentes', async (ctx) => {
 
   //MENSAGEM DO BOT PARA INFORMAR QUE ESTA BUSCANDO
   await ctx.reply('🔍 Buscando últimas partidas...');
-  const matches = await getMatches();
+  const matches = await getMatches(1);
 
   // VERIFICAÇÃO SE NÃO HOUVER PARTIDAS
   if (matches.length === 0) {
@@ -77,7 +73,7 @@ bot.action('partidas', async (ctx) => {
           responseMessage += `❌ ${match.date}\n`;
         }
 
-      responseMessage += `- [CS] ${match.team1} vs ${match.team2} - ${match.score}\n`;
+      responseMessage += `- [${match.nameChampionship}] ${match.team1} vs ${match.team2} - ${match.score}\n`;
 
       //  BOTÃO DE REDIRECIONAMENTO PARA A PARTIDA NO SITE DA HLTV
       await ctx.reply(responseMessage.trim(), Markup.inlineKeyboard([
@@ -89,12 +85,56 @@ bot.action('partidas', async (ctx) => {
   await mostrarMenu(ctx);
 });
 
+bot.action('partidasfuturas', async (ctx) => {
+
+  //MENSAGEM DO BOT PARA INFORMAR QUE ESTA BUSCANDO
+  await ctx.reply('🔍 Buscando próxima partida...');
+  const matches = await getMatches(0);
+
+  if (matches.length === 0) {
+    await ctx.reply('Por enquanto a FURIA não tem partidas marcadas');
+  } else {
+    await ctx.reply('📺 Próxima partida da FURIA 📺');
+
+    for (const match of matches.slice(0, 5)) {
+      let responseMessage = '';
+
+      responseMessage += `- [CS] ${match.team1} vs ${match.team2} - ${match.date}\n`;
+
+      await ctx.reply(responseMessage.trim(), Markup.inlineKeyboard([
+        Markup.button.url('Mais detalhes', match.href)
+      ]));
+    }
+  }
+  await mostrarMenu(ctx);
+});
+
+bot.action('noticias', async (ctx) => {
+  await ctx.reply('🔍 Buscando notícias da FURIA...');
+
+  const noticias = await getNews();
+
+  await ctx.reply('📰 Ultimas noticias da FURIA')
+  for (const noticia of noticias.slice(0,5)) {
+    await ctx.reply(
+      `Data: ` + noticia.titulo.trim(),
+      Markup.inlineKeyboard([
+        Markup.button.url('Link da Notícia', noticia.href)
+      ])
+    );
+  }
+
+  await mostrarMenu(ctx);
+});
+
 
 function mostrarMenu(ctx) {
   return ctx.reply('📌 Selecione uma opção:', Markup.inlineKeyboard([
       [Markup.button.callback('👥 Elenco', 'elenco')],
       [Markup.button.callback('📊 Ranking', 'ranking')],
-      [Markup.button.callback('📅 Partidas Recentes', 'partidas')],
+      [Markup.button.callback('📅 Partidas Recentes', 'partidasrecentes')],
+      [Markup.button.callback('📅 Partidas Futuras', 'partidasfuturas')],
+      [Markup.button.callback('📰 Noticias Recentes','noticias')]
     ])
   );
 }
