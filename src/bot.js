@@ -6,7 +6,7 @@ const bot = new Telegraf(config.token);
 
 bot.start(async (ctx) => {
   const msg = 
-`🐾 Fala, Furioso(a)! Aqui é o bot da FURIA!
+`<b>🐾 Fala, Furioso(a)! Aqui é o bot da FURIA!</b>
 
 Quer ficar por dentro de tudo sobre a FURIA no CS? Acompanhe nosso time, jogos ao vivo, campeonatos, e as novidades do mundo do Counter-Strike! Tá tudo aqui para você não perder nenhum lance!.
 
@@ -14,25 +14,26 @@ Vem acompanhar de perto cada vitória da FURIA no CS! 🖤🔥
 
 Fique a vontade para me pedir qualquer informação`; 
 
-ctx.reply(msg);
+await ctx.reply(msg, { parse_mode: 'HTML' });
 await mostrarMenu(ctx);
 });
 
 
 // /elenco
 bot.action('elenco', async (ctx) => {
-  await ctx.reply('🔍 Buscando elenco da FURIA...')
+  await ctx.reply('🔍 Buscando elenco da FURIA...');
 
   const players = await getFuriaPlayers();
 
+  let msg = `Elenco atual da FURIA no CS:\n\n`; 
+
   for (const player of players) {
-    if (player.img) {
-      await ctx.replyWithPhoto(player.img, { caption: `${player.name}` });
-    } else {
-      await ctx.reply(`${player.name} (sem foto disponível)`);
-    }
+    msg += `- ${player.name}\n`;
   }
 
+  msg += `\n VAMOS COM TUDO !\n\n🐾🔥 `;
+
+  await ctx.reply(msg);
   await mostrarMenu(ctx);
 });
   
@@ -73,7 +74,7 @@ bot.action('partidasrecentes', async (ctx) => {
           responseMessage += `❌ ${match.date}\n`;
         }
 
-      responseMessage += `- [${match.nameChampionship}] ${match.team1} vs ${match.team2} - ${match.score}\n`;
+      responseMessage += `- [CS] ${match.team1} vs ${match.team2} - ${match.score}\n`;
 
       //  BOTÃO DE REDIRECIONAMENTO PARA A PARTIDA NO SITE DA HLTV
       await ctx.reply(responseMessage.trim(), Markup.inlineKeyboard([
@@ -86,8 +87,6 @@ bot.action('partidasrecentes', async (ctx) => {
 });
 
 bot.action('partidasfuturas', async (ctx) => {
-
-  //MENSAGEM DO BOT PARA INFORMAR QUE ESTA BUSCANDO
   await ctx.reply('🔍 Buscando próxima partida...');
   const matches = await getMatches(0);
 
@@ -97,15 +96,19 @@ bot.action('partidasfuturas', async (ctx) => {
     await ctx.reply('📺 Próxima partida da FURIA 📺');
 
     for (const match of matches.slice(0, 5)) {
-      let responseMessage = '';
+      let responseMessage = `- [CS] ${match.team1} vs ${match.team2} - ${match.date}`;
 
-      responseMessage += `- [CS] ${match.team1} vs ${match.team2} - ${match.date}\n`;
-
-      await ctx.reply(responseMessage.trim(), Markup.inlineKeyboard([
-        Markup.button.url('Mais detalhes', match.href)
-      ]));
+      if (match.href) {
+        await ctx.reply(responseMessage.trim(), Markup.inlineKeyboard([
+          Markup.button.url('Mais detalhes', match.href)
+        ]));
+      } else {
+        // Se não tiver link, envia só o texto
+        await ctx.reply(responseMessage.trim());
+      }
     }
   }
+
   await mostrarMenu(ctx);
 });
 
@@ -127,6 +130,15 @@ bot.action('noticias', async (ctx) => {
   await mostrarMenu(ctx);
 });
 
+bot.action('loja',async(ctx) => {
+  await ctx.reply(
+    `🐾 Leve a FURIA com você — confira a loja oficial! `,
+      Markup.inlineKeyboard([
+        Markup.button.url('Loja', 'https://www.furia.gg/')
+      ])
+  )
+});
+
 
 function mostrarMenu(ctx) {
   return ctx.reply('📌 Selecione uma opção:', Markup.inlineKeyboard([
@@ -134,7 +146,8 @@ function mostrarMenu(ctx) {
       [Markup.button.callback('📊 Ranking', 'ranking')],
       [Markup.button.callback('📅 Partidas Recentes', 'partidasrecentes')],
       [Markup.button.callback('📅 Partidas Futuras', 'partidasfuturas')],
-      [Markup.button.callback('📰 Noticias Recentes','noticias')]
+      [Markup.button.callback('📰 Noticias','noticias')],
+      [Markup.button.callback('🛒 Loja da Pantera', 'loja')]
     ])
   );
 }

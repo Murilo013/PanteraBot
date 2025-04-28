@@ -27,15 +27,15 @@ async function getFuriaPlayers() {
     const cardCoach = document.querySelector('.table-container.coach-table');
 
     const nomeCoach = cardCoach.querySelector('.text-ellipsis')?.innerText.trim() || 'Nome não encontrado';
-    const imgCoach = cardCoach.querySelector('img')?.src || 'Nome não encontrado';
+    //const imgCoach = cardCoach.querySelector('img')?.src || 'Nome não encontrado';
     
     const playerArray = Array.from(playerCards).map(card => {
       const name = card.querySelector('.text-ellipsis')?.innerText.trim() || 'Nome não encontrado';
-      const img = card.querySelector('img')?.src || '';
-      return { name, img };
+      //const img = card.querySelector('img')?.src || '';
+      return { name };
     });
 
-    playerArray.push({ name: `Coach: ${nomeCoach}`, img: imgCoach });
+    playerArray.push({ name: `Coach: ${nomeCoach}`});
     return playerArray;
 
   });
@@ -52,61 +52,84 @@ async function getRanking() {
   const rank = await page.evaluate(() => {
     const valor = document.querySelectorAll('.right a');
     return [
-      valor[0] ? valor[0].innerText.trim() : 'Ranking Valve não encontrado', // SE ACHAR ELE RETIRA OS ESPAÇOS - SE NÃO ELE MOSTRA NÃO ENCONTRADO
+      valor[0] ? valor[0].innerText.trim() : 'Ranking Valve não encontrado', 
       valor[1] ? valor[1].innerText.trim() : 'Ranking Mundial não encontrado'
     ];          
 });
 
 await browser.close();
 
-  // Retorna string formatada
   return `📊 Ranking da FURIA:\n \n 🌍 Mundial: ${rank[1]} \n 🎯 Valve: ${rank[0]}`;
 }
 
 
 async function getMatches(matchTableNumber) {
-  const url = 'https://www.hltv.org/team/7020/spirit';
+  const url = 'https://www.hltv.org/team/8297/furia';
   const { browser, page } = await launchBrowser(url);
 
-  // Obtendo as partidas na página principal
   const matches = await page.evaluate((matchTableNumber) => {
-    const matchTables = document.querySelectorAll('.table-container.match-table');
-    const allPastMatches = [];
 
-    // Selecionando a tabela com base no número passado
-    const matchTable = matchTableNumber === 1 ? matchTables[1] : matchTables[0];
+    let matchTable = null;
+    let matchTables = null;
+    let naotemproximas = null;
 
+    if (matchTableNumber === 0) {
+      naotemproximas = document.querySelectorAll('.empty-state');
+      if (naotemproximas.length == 1) {
+        return null;
+      }
+      matchTables = document.querySelectorAll('.table-container.match-table');
+      matchTable = matchTables[0];
+    } else {
+      matchTables = document.querySelectorAll('.table-container.match-table');
+      if (matchTables.length > 1) {
+        matchTable = matchTables[1];
+      } else if (matchTables.length === 1) {
+        matchTable = matchTables[0];
+      } else {
+        return null; // Nenhuma tabela encontrada
+      }
+    }
+
+    if (!matchTable) {
+      return null; // Proteção extra caso ainda esteja undefined
+    }
+
+
+  
     const rows = matchTable.querySelectorAll('.team-row');
+    const allMatches = [];
 
     rows.forEach(row => {
       const date = row.querySelector('.date-cell span')?.innerText.trim() || 'Data não encontrada';
-      const team1 = row.querySelector('.team-name.team-1')?.innerText.trim() || 'Time 1 não encontrada';
-      const team2 = row.querySelector('.team-name.team-2')?.innerText.trim() || 'Time 2 não encontrada';
+      const team1 = row.querySelector('.team-name.team-1')?.innerText.trim() || 'Time 1 não encontrado';
+      const team2 = row.querySelector('.team-name.team-2')?.innerText.trim() || 'Time 2 não encontrado';
       const scoreSpanAll = row.querySelectorAll('.score-cell span');
       const score = Array.from(scoreSpanAll).slice(0, 3).map(span => span.innerText.trim()).join(' ') || 'Pontuação não encontrada';
-      const linkpartida = matchTableNumber === 1 ? row.querySelector('.stats-button-cell a') : row.querySelector('.matchpage-button-cell a');
+      const linkpartida = matchTableNumber === 1
+        ? row.querySelector('.stats-button-cell a')
+        : row.querySelector('.matchpage-button-cell a');
       const href = linkpartida?.href;
 
-      allPastMatches.push({
-        date, team1, team2, score, href
+      allMatches.push({
+        date,
+        team1,
+        team2,
+        score,
+        href
       });
     });
 
-    return allPastMatches;
+    return allMatches;
   }, matchTableNumber);
 
-  await browser.close();
-
-  /*
-  for (let match of matches) {
-    const nameChampionship = await getNameChampionship(match.href);
-    match.nameChampionship = nameChampionship;
-  }
-  */
-
   console.log(matches);
+  await browser.close();
   return matches;
 }
+
+getMatches(0);
+
 
 /*
 async function getNameChampionship(urlmatch) {
