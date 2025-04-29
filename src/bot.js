@@ -54,7 +54,7 @@ bot.action('partidasrecentes', async (ctx) => {
   const matches = await getMatches(1);
 
   // VERIFICAÇÃO SE NÃO HOUVER PARTIDAS
-  if (matches.length === 0) {
+  if (matches == null) {
     await ctx.reply('Não foram encontrados resultados de partidas.');
   } else {
     await ctx.reply('📺 Últimas 5 partidas da FURIA 📺');
@@ -90,7 +90,7 @@ bot.action('partidasfuturas', async (ctx) => {
   await ctx.reply('🔍 Buscando próxima partida...');
   const matches = await getMatches(0);
 
-  if (matches.length === 0) {
+  if (matches == null) {
     await ctx.reply('Por enquanto a FURIA não tem partidas marcadas');
   } else {
     await ctx.reply('📺 Próxima partida da FURIA 📺');
