@@ -3,6 +3,7 @@ const config = require('./config')
 const { Telegraf,Markup } = require('telegraf');
 
 const bot = new Telegraf(config.token);
+const usuariosNotificacoes = new Set();
 
 bot.start(async (ctx) => {
   const msg = 
@@ -140,6 +141,25 @@ bot.action('loja',async(ctx) => {
 });
 
 
+bot.action('ativar_notificacao', async (ctx) => {
+  const userId = ctx.from.id;
+
+  if (!usuariosNotificacoes.has(userId)) {
+    usuariosNotificacoes.add(userId);
+    await ctx.answerCbQuery('Notificações ativadas!');
+    await ctx.reply('🔔 Você receberá notificações quando a FURIA estiver jogando!');
+  } else {
+    await ctx.answerCbQuery('Você já está inscrito!');
+  }
+});
+
+
+function notificarFuriaJogando() {
+  usuariosNotificacoes.forEach((userId) => {
+    bot.telegram.sendMessage(userId, '🚨 A FURIA está jogando agora! Vai lá assistir!');
+  });
+}
+
 function mostrarMenu(ctx) {
   return ctx.reply('📌 Selecione uma opção:', Markup.inlineKeyboard([
       [Markup.button.callback('👥 Elenco', 'elenco')],
@@ -147,6 +167,7 @@ function mostrarMenu(ctx) {
       [Markup.button.callback('📅 Partidas Recentes', 'partidasrecentes')],
       [Markup.button.callback('📅 Partidas Futuras', 'partidasfuturas')],
       [Markup.button.callback('📰 Noticias','noticias')],
+      [Markup.button.callback('🔔 Ativar notifições da FURIA', 'ativar_notificacao')],
       [Markup.button.callback('🛒 Loja da Pantera', 'loja')]
     ])
   );

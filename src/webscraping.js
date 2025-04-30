@@ -27,11 +27,9 @@ async function getFuriaPlayers() {
     const cardCoach = document.querySelector('.table-container.coach-table');
 
     const nomeCoach = cardCoach.querySelector('.text-ellipsis')?.innerText.trim() || 'Nome não encontrado';
-    //const imgCoach = cardCoach.querySelector('img')?.src || 'Nome não encontrado';
     
     const playerArray = Array.from(playerCards).map(card => {
       const name = card.querySelector('.text-ellipsis')?.innerText.trim() || 'Nome não encontrado';
-      //const img = card.querySelector('img')?.src || '';
       return { name };
     });
 
@@ -64,38 +62,31 @@ await browser.close();
 
 
 async function getMatches(matchTableNumber) {
-  const url = 'https://www.hltv.org/team/8297/furia';
+  const url = 'https://www.hltv.org/team/8297/furia#tab-matchesBox';
   const { browser, page } = await launchBrowser(url);
 
   const matches = await page.evaluate((matchTableNumber) => {
 
     let matchTable = null;
     let matchTables = null;
-    let naotemproximas = null;
 
     if (matchTableNumber === 0) {
-      naotemproximas = document.querySelectorAll('.empty-state');
-      if (naotemproximas.length == 1) {
+      const naotemproximas = document.querySelector('.fa.fa-calendar');
+      if (naotemproximas) {
         return null;
       }
-      matchTables = document.querySelectorAll('.table-container.match-table');
+    }
+
+    matchTables = document.querySelectorAll('.table-container.match-table');
+    
+    if (matchTableNumber === 0 || matchTables.length === 1) {
       matchTable = matchTables[0];
-    } else {
-      matchTables = document.querySelectorAll('.table-container.match-table');
-      if (matchTables.length > 1) {
-        matchTable = matchTables[1];
-      } else if (matchTables.length === 1) {
-        matchTable = matchTables[0];
-      } else {
-        return null; // Nenhuma tabela encontrada
-      }
+    } else if (matchTables.length > 1) {
+      matchTable = matchTables[1];
     }
-
     if (!matchTable) {
-      return null; // Proteção extra caso ainda esteja undefined
+      return null;
     }
-
-
   
     const rows = matchTable.querySelectorAll('.team-row');
     const allMatches = [];
@@ -128,27 +119,6 @@ async function getMatches(matchTableNumber) {
   return matches;
 }
 
-getMatches(0);
-
-
-/*
-async function getNameChampionship(urlmatch) {
-  const { browser, page } = await launchBrowser(urlmatch);
-
-  const nameChampionship = await page.evaluate(() => {
-    // Certifique-se de que a classe está correta
-    const boxteams = document.querySelector('.standard-box.teamsBox');
-    const nameElement = boxteams.querySelector('.event.text-ellipsis');
-    return nameElement.innerText.trim();  
-  });
-
-  await browser.close();
-  return nameChampionship;
-}
-*/
-
-
-
 async function getNews() {
 
   const url = 'https://www.hltv.org/team/8297/furia#tab-newsBox';
@@ -162,7 +132,7 @@ async function getNews() {
       const href = news?.href;
       const titulo = news.innerText.trim();
 
-      if (titulo.includes('FURIA')) { // 🔥 filtra só os títulos com 'FURIA'
+      if (titulo.includes('FURIA')) {
         allNews.push({ href, titulo });
       }
     });
