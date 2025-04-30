@@ -1,6 +1,6 @@
 # 🐾 Bot da FURIA no Telegram
 
-Este projeto é um bot desenvolvido com foco nos fãs da **FURIA Esports**, que desejam acompanhar de forma rápida e prática as principais informações sobre o time de **CS:GO** diretamente pelo **Telegram**.
+Este projeto é um bot desenvolvido com foco nos fãs da **FURIA Esports**, que desejam acompanhar de forma rápida e prática as principais informações sobre o time de **CS** diretamente pelo **Telegram**.
 
 ## 🎯 Objetivo
 
