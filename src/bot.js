@@ -2,6 +2,8 @@ const { getFuriaPlayers, getRanking, getMatches, getNews } = require('./webscrap
 const config = require('./config')
 const { Telegraf,Markup } = require('telegraf');
 
+require('./config/keep_alive');
+
 const bot = new Telegraf(config.token);
 const usuariosNotificacoes = new Set();
 
