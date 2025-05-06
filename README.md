@@ -37,4 +37,4 @@ O usuário interage com o bot por meio de comandos e botões no chat do Telegram
 
 ## 🎥 Demonstração
 
-[📽️ *WORKING...*]
+[VÍDEO DEMONSTRAÇÃO](https://drive.google.com/file/d/13S-oWuSBgOOkH_FNTa8G1yNSJab7R3VT/view?usp=drive_link)
